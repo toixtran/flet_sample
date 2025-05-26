@@ -11,6 +11,16 @@ class RegisterScreen(ft.Column):
         self.password_field = ft.TextField(label="Password", password=True)
         self.error_text = ft.Text(color=ft.Colors.RED)
 
+        self.controls = [
+            ft.Text("Register", size=30, weight=ft.FontWeight.BOLD),
+            self.email_field,
+            self.password_field,
+            self.error_text,
+            ft.ElevatedButton("Register", on_click=self.register_clicked),
+            ft.TextButton("Already have an account? Login",
+                         on_click=lambda e: self.on_navigate("login"))
+        ]
+
     def register_clicked(self, e):
         email = self.email_field.value
         password = self.password_field.value
@@ -23,14 +33,3 @@ class RegisterScreen(ft.Column):
             else:
                 self.error_text.value = "Registration failed. Email might be taken."
             self.update()
-
-    def build(self):
-        return ft.Column([
-            ft.Text("Register", size=30, weight=ft.FontWeight.BOLD),
-            self.email_field,
-            self.password_field,
-            self.error_text,
-            ft.ElevatedButton("Register", on_click=self.register_clicked),
-            ft.TextButton("Already have an account? Login",
-                         on_click=lambda e: self.on_navigate("login"))
-        ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
