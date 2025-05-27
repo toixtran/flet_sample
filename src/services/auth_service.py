@@ -17,8 +17,7 @@ class AuthService:
 
             # Create new user
             hashed_password = AuthService.hash_password(password)
-            user_id = db.execute(text("SELECT nextval('user_id_seq')")).scalar()
-            new_user = User(id=user_id, email=email, password=hashed_password)
+            new_user = User(email=email, password=hashed_password)
             db.add(new_user)
             db.commit()
             return True
