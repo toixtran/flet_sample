@@ -2,35 +2,79 @@ import flet as ft
 from src.services.auth_service import AuthService
 from src.database.db import get_db
 from contextlib import contextmanager
+import os
 
-class LoginScreen(ft.UserControl):
+class LoginScreen(ft.Container):
     def __init__(self, on_navigate):
-        super().__init__()
+        super().__init__(
+            expand=True,
+            padding=20,
+        )
+        self.base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.on_navigate = on_navigate
-        self.email_field = ft.TextField(label="Email")
-        self.password_field = ft.TextField(label="Password", password=True)
-        self.error_text = ft.Text(color=ft.colors.RED)
-    
+        self.build_ui()
+
+    def build_left_column(self):
+        img_path = os.path.join(self.base_dir, "assets/images/bgimg.png")
+        return ft.Container(
+            content=ft.Image(src=img_path, fit=ft.ImageFit.CONTAIN),
+            expand=True,
+            bgcolor=ft.Colors.BLUE_100,
+            padding=10,
+            border_radius=10,
+        )
+
+    def build_right_column(self):
+        self.title = ft.Text("Login", size=30, weight=ft.FontWeight.BOLD)
+        self.email_field = ft.TextField(label="Email", width=300)
+        self.password_field = ft.TextField(label="Password", password=True, width=300)
+        self.error_text = ft.Text(value="", color=ft.Colors.RED)
+
+        self.login_button = ft.ElevatedButton("Login", on_click=self.login_clicked)
+        self.register_button = ft.TextButton(
+            "Don't have an account? Register",
+            on_click=lambda e: self.on_navigate("register")
+        )
+
+        return ft.Column(
+            controls=[
+                self.title,
+                self.email_field,
+                self.password_field,
+                self.error_text,
+                self.login_button,
+                self.register_button,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=15,
+            width=350,
+        )
+
+    def build_ui(self):
+        left_col = self.build_left_column()
+        right_col = self.build_right_column()
+        self.content = ft.Row(
+            controls=[left_col, right_col],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=40,
+            expand=True,
+        )
+
     def login_clicked(self, e):
-        email = self.email_field.value
-        password = self.password_field.value
-        
-        # Use context manager to handle database session
+        email = self.email_field.value.strip()
+        password = self.password_field.value.strip()
+
+        if not email or not password:
+            self.error_text.value = "Please enter both email and password"
+            self.update()
+            return
+
         with contextmanager(get_db)() as db:
-            if AuthService.login_user(db, email, password):
+            try:
+                AuthService.login_user(db, email, password)
                 self.error_text.value = ""
                 self.on_navigate("dashboard")
-            else:
-                self.error_text.value = "Invalid email or password"
-            self.update()
-    
-    def build(self):
-        return ft.Column([
-            ft.Text("Login", size=30, weight=ft.FontWeight.BOLD),
-            self.email_field,
-            self.password_field,
-            self.error_text,
-            ft.ElevatedButton("Login", on_click=self.login_clicked),
-            ft.TextButton("Don't have an account? Register", 
-                         on_click=lambda e: self.on_navigate("register"))
-        ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+            except Exception as err:
+                self.error_text.value = str(err)
+                self.update()

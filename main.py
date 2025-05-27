@@ -5,12 +5,11 @@ from src.database.db import init_db
 def main(page: ft.Page):
     page.title = "Demo Desktop App"
     page.window_width = 800
-    page.window_height = 600
-    
-    # Initialize database
+    page.window_height = 800
+    page.theme_mode = ft.ThemeMode.LIGHT
+
     init_db()
-    
-    # Set up main layout
+
     layout = MainLayout(page)
     page.add(layout)
     page.update()

@@ -9,26 +9,37 @@ class AuthService:
 
     @staticmethod
     def register_user(db: Session, email: str, password: str) -> bool:
+        if not email or not password:
+            raise Exception("Email and password are required")
+
+        existing_user = db.query(User).filter(User.email == email).first()
+        if existing_user:
+            raise Exception("Email is already registered")
+
+        hashed_password = AuthService.hash_password(password)
+        new_user = User(email=email, password=hashed_password)
+
         try:
-            # Check if user exists
-            if db.query(User).filter(User.email == email).first():
-                return False
-            
-            # Create new user
-            hashed_password = AuthService.hash_password(password)
-            new_user = User(email=email, password=hashed_password)
             db.add(new_user)
             db.commit()
-            return True
-        except:
+            db.refresh(new_user)
+            return new_user
+        except Exception as e:
             db.rollback()
-            return False
+            raise e
 
     @staticmethod
-    def login_user(db: Session, email: str, password: str) -> bool:
+    def login_user(db: Session, email: str, password: str) -> User:
+        if not email or not password:
+            raise Exception("Email and password are required")
+
         hashed_password = AuthService.hash_password(password)
         user = db.query(User).filter(
             User.email == email,
             User.password == hashed_password
         ).first()
-        return bool(user)
+
+        if user:
+            return user
+
+        raise Exception("Invalid email or password")
