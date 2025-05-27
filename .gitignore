@@ -1,3 +1,5 @@
 __pycache__/
 venv/
 app.db
+src/.DS_Store
+src/models/.DS_Store

@@ -30,6 +30,10 @@ Run the application:
 
 python main.py
 
+Run migration
+
+python src/database/migration.py
+
 Project Structure
 
 src/models/: Database models

@@ -21,6 +21,9 @@ def sync_columns():
     with engine.begin() as conn:
         inspector = inspect(conn)
 
+        model_tables = set(Base.metadata.tables.keys())
+        db_tables = {table[0] for table in conn.execute(text("SHOW TABLES")).fetchall()}
+
         for table in Base.metadata.tables.values():
             table_name = table.name
             model_columns = {col.name: col for col in table.columns}
@@ -32,6 +35,7 @@ def sync_columns():
 
             existing_columns = {col["name"] for col in existing_columns_info}
 
+            # Add missing columns
             for col_name, column in model_columns.items():
                 if col_name not in existing_columns:
                     col_type = str(column.type.compile(engine.dialect))
@@ -44,6 +48,7 @@ def sync_columns():
                     except Exception as e:
                         print(f"Failed to add column '{col_name}' to '{table_name}': {e}")
 
+            # Drop columns not in model
             for col in existing_columns:
                 if col not in model_columns:
                     try:
@@ -51,6 +56,15 @@ def sync_columns():
                         print(f"Dropped column '{col}' from '{table_name}'")
                     except Exception as e:
                         print(f"Failed to drop column '{col}' from '{table_name}': {e}")
+
+        # Drop tables that are in the database but not in the model
+        for table_name in db_tables:
+            if table_name not in model_tables:
+                try:
+                    conn.execute(text(f"DROP TABLE {table_name}"))
+                    print(f"Dropped table '{table_name}' because model was deleted")
+                except Exception as e:
+                    print(f"Failed to drop table '{table_name}': {e}")
 
 def init_db():
     try:
