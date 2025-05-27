@@ -9,8 +9,15 @@ class RegisterScreen(ft.Container):
         self.on_navigate = on_navigate
 
         # Controls
-        self.email_field = ft.TextField(label="Email")
-        self.password_field = ft.TextField(label="Password", password=True)
+        self.email_field = ft.TextField(
+            label="Email",
+            on_submit=self.register_clicked
+        )
+        self.password_field = ft.TextField(
+            label="Password",
+            password=True,
+            on_submit=self.register_clicked
+        )
         self.error_text = ft.Text(color=ft.Colors.RED)
 
         # Content
