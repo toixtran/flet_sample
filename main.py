@@ -7,9 +7,6 @@ def main(page: ft.Page):
     page.window_width = 800
     page.window_height = 600
 
-    # Initialize database
-    init_db()
-
     # Set up main layout
     layout = MainLayout(page)
     page.add(layout)
