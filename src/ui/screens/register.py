@@ -3,15 +3,18 @@ from src.services.auth_service import AuthService
 from src.database.db import get_db
 from contextlib import contextmanager
 
-class RegisterScreen(ft.Column):
+class RegisterScreen(ft.Container):
     def __init__(self, on_navigate):
         super().__init__()
         self.on_navigate = on_navigate
+
+        # Controls
         self.email_field = ft.TextField(label="Email")
         self.password_field = ft.TextField(label="Password", password=True)
         self.error_text = ft.Text(color=ft.Colors.RED)
 
-        self.controls = [
+        # Content
+        self.content = ft.Column([
             ft.Text("Register", size=30, weight=ft.FontWeight.BOLD),
             self.email_field,
             self.password_field,
@@ -19,17 +22,27 @@ class RegisterScreen(ft.Column):
             ft.ElevatedButton("Register", on_click=self.register_clicked),
             ft.TextButton("Already have an account? Login",
                          on_click=lambda e: self.on_navigate("login"))
-        ]
+        ])
+
+        #Style
+        self.padding = 20
+        self.expand = True
 
     def register_clicked(self, e):
         email = self.email_field.value
         password = self.password_field.value
+
+        if not email or not password:
+            self.error_text.value = "Email and password are required."
+            e.page.update()
+            return
 
         # Use context manager to handle database session
         with contextmanager(get_db)() as db:
             if AuthService.register_user(db, email, password):
                 self.error_text.value = ""
                 self.on_navigate("login")
+                e.page.update()
             else:
                 self.error_text.value = "Registration failed. Email might be taken."
-            self.update()
+                e.page.update()

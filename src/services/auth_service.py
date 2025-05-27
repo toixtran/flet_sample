@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from src.models.user import User
 from hashlib import sha256
 
@@ -13,14 +14,16 @@ class AuthService:
             # Check if user exists
             if db.query(User).filter(User.email == email).first():
                 return False
-            
+
             # Create new user
             hashed_password = AuthService.hash_password(password)
-            new_user = User(email=email, password=hashed_password)
+            user_id = db.execute(text("SELECT nextval('user_id_seq')")).scalar()
+            new_user = User(id=user_id, email=email, password=hashed_password)
             db.add(new_user)
             db.commit()
             return True
-        except:
+        except Exception as e:
+            print(f"Error registering user: {e}")
             db.rollback()
             return False
 
